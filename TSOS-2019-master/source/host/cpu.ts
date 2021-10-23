@@ -158,7 +158,8 @@ module TSOS {
 
         public addCarry(){//Add with carry
             //adds the contents of the address into the accumulator
-            this.Acc += parseInt(this.valueHelper().toString(16), 16);
+            
+            this.Acc += this.decodeBase(String(_MemAcc.read(this.valueHelper())),16);
             this.PC += 3;
         }//addCarry
 
@@ -231,8 +232,9 @@ module TSOS {
                 //Everything I did before
                 var currPlace = this.PC;
 
-                //increases PC by x amount
-                this.PC += parseInt(_MemAcc.read(this.PC+1).toString(16),16);
+                //increases PC by x amount 
+                //  Adding 1 so we "start" the branch from the byte value rather than the D0
+                this.PC += parseInt(_MemAcc.read(this.PC+1).toString(16),16)+1;
 
                 if(this.PC <= 127){
                     //Increment 
@@ -266,10 +268,15 @@ module TSOS {
                             twoCompResBin += '0';
                     }//for
                     
-                    //DONT Add one to the result
+                    //Add one to the result
                     var twosComp = this.decodeBase(twoCompResBin,2) + 1;
 
                     var actualLoaction = 255 - twosComp +1;
+                    
+                    //testing------------------------//
+                    console.log(actualLoaction);
+                    //------------------------------//
+
                     //Set the PC to the result in to hop to it in memory                                        
                     this.PC = actualLoaction;
 
@@ -337,8 +344,7 @@ module TSOS {
                     //Hop to the index in mmemory that the Y reg is pointing to
                     this.PC = this.Yreg;
                     //Stops when you begin counting past memory or when you specify the printing to end 
-                    while(this.IR != "00" && this.PC < 255){
-
+                    while(_MemAcc.read(this.PC) != "00" && this.PC < 255){
                         //Must be converted back into Hex for the IR to read the instruction correctly
                         //
                         //----Read in the PC as an decimal
@@ -351,14 +357,12 @@ module TSOS {
                         //  ASCII text
 
                         var IRString = String(this.IR);
-                        var IRnumber = parseInt(IRString);
-                        _StdOut.putText(String.fromCharCode(IRnumber));
+                        //var IRnumber = parseInt(IRString);
+                        _StdOut.putText(String.fromCharCode(parseInt(IRString,16)));
 
                         this.PC++; 
                         
                     }//while   
-                    _StdOut.advanceLine();
-                    _OsShell.putPrompt();
                     //hops to the next op code in memory
                     this.PC = currentPlace+1; 
                     break;
