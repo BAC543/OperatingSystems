@@ -182,6 +182,7 @@ var TSOS;
         } //programBreak
         compare() {
             //sets the Zero Flag to the appropriate state
+            //Easier to Debug when everything is not in the if 
             var data = _MemAcc.read(this.valueHelper());
             if (this.Xreg == this.decodeBase(String(data), 16)) {
                 this.Zflag = 1;
@@ -195,15 +196,24 @@ var TSOS;
         } //compare
         branch() {
             if (this.Zflag == 0) { //branch when the Z flag is zero
+                //Adds the next byte to the program counter//
+                //##############################################################///
+                //this.PC += this.decodeBase(String(_MemAcc.read(this.PC+1)),16) % 256;
+                //this.PC = 10;
+                ///##############################################################///
+                //Everything I did before
                 var currPlace = this.PC;
-                //Adds the next byte to the program counter
-                this.PC += this.decodeBase(String(_MemAcc.read(this.PC + 1)), 16);
-                // if(this.PC <= 127){
-                //     //Increment 
-                //     //this.PC += parseInt(_MemAcc.read(this.PC+1).toString(16),16);
-                //     //Increment the PC by the byte that is next to it
-                // }
+                //increases PC by x amount
+                this.PC += parseInt(_MemAcc.read(this.PC + 1).toString(16), 16);
+                if (this.PC <= 127) {
+                    //Increment 
+                    //this.PC += parseInt(_MemAcc.read(this.PC+1).toString(16),16);
+                    //Increment the PC by the byte that is next to it
+                }
                 if (this.PC > 127) {
+                    //
+                    // this.PC += this.decodeBase(String(_MemAcc.read(this.PC+1)),16);
+                    // this.PC = this.PC % 256;
                     //Invoke 2's complement to find where to branch to in memory
                     //Converts the place we are hopping to an array in binary;
                     //var locationDec = this.PC + this.decodeBase(_MemAcc.read(currPlace+1),16);
@@ -219,11 +229,11 @@ var TSOS;
                     } //for
                     //DONT Add one to the result
                     var twosComp = this.decodeBase(twoCompResBin, 2) + 1;
-                    var actualLoaction = 255 - twosComp;
+                    var actualLoaction = 255 - twosComp + 1;
                     //Set the PC to the result in to hop to it in memory                                        
                     this.PC = actualLoaction;
-                }
-            } //if
+                } // if 127
+            } //if Z flag
             else { //No Branch 
                 //Just increment as normal to go past the rest of Op Code and the address
                 this.PC += 2;
@@ -268,7 +278,6 @@ var TSOS;
                 //Convert the ASCII to text and output on the Console
                 case 2:
                     //Outputs to text
-                    _StdOut.advanceLine();
                     //Remebers where the PC left off before jumping somewhere else in memory
                     var currentPlace = this.PC;
                     //Hop to the index in mmemory that the Y reg is pointing to
@@ -276,7 +285,9 @@ var TSOS;
                     //Stops when you begin counting past memory or when you specify the printing to end 
                     while (this.IR != "00" && this.PC < 255) {
                         //Must be converted back into Hex for the IR to read the instruction correctly
-                        this.IR = _MemAcc.read(this.PC.toString(16));
+                        //
+                        //----Read in the PC as an decimal
+                        this.IR = _MemAcc.read(this.PC);
                         //I know this is kind of a mess but here is the explaination:
                         //  For whatever resaon in parse int it cannot convert from string to String (idk why)
                         //  Therefore I wrapped the IR in the String method and from there I wrapped around parseInt
